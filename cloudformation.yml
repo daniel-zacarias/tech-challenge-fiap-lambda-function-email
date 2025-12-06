@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lambda placeholder conectada a um SQS existente
+
+Parameters:
+  ExistingQueueArn:
+    Type: String
+    Description: ARN da fila SQS já existente
+
+Resources:
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: lambda-sqs-email-execution-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: LambdaSQSPermission
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                Resource: !Ref ExistingQueueArn
+
+  PlaceholderLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: lambda-sqs-email
+      Handler: index.handler
+      Runtime: nodejs18.x
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 30
+      MemorySize: 256
+      
+      # Como ainda não há código, criamos um ZIP vazio
+      Code:
+        ZipFile: |
+          exports.handler = async (event) => {
+            console.log("Placeholder Lambda executada");
+            return {};
+          };
+
+  LambdaSQSEventSource:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn: !Ref ExistingQueueArn
+      FunctionName: !Ref PlaceholderLambda
+      Enabled: true
+      BatchSize: 10
+
+Outputs:
+  LambdaArn:
+    Description: ARN da Lambda criada
+    Value: !GetAtt PlaceholderLambda.Arn
