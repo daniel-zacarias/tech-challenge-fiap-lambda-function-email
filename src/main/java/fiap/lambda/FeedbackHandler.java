@@ -28,11 +28,13 @@ public class FeedbackHandler implements RequestHandler<SQSEvent, Void> {
                 Message feedbackMessage = objectMapper
                         .readValue(snsEnvelope.Message(),
                                 Message.class);
-                messageBody = EmailPresenter.formatEmailContent(feedbackMessage);
+                String messageBodyText = EmailPresenter.formatEmailContent(feedbackMessage);
+                String messageBodyHtml = EmailPresenter.formatEmailHtmlContent(feedbackMessage);
                 emailResource.sendEmail(
                         System.getenv("RECIPIENT_EMAIL"),
                         "[URGENTE] Feedback recebido",
-                        messageBody);
+                        messageBodyText,
+                        messageBodyHtml);
             } catch (Exception e) {
                 context.getLogger().log("Error parsing message: " + e.getMessage());
             }
