@@ -16,7 +16,11 @@ public class EmailResource {
 
         private static final String SOURCE = System.getenv("SOURCE_EMAIL");
 
-        public void sendEmail(String recipient, String subject, String content) {
+        public void sendEmail(
+                        final String recipient,
+                        final String subject,
+                        final String content,
+                        final String htmlContent) {
 
                 Destination destinyRecipient = Destination.builder()
                                 .toAddresses(recipient)
@@ -26,12 +30,17 @@ public class EmailResource {
                                 .data(subject)
                                 .build();
 
-                Content bodyContent = Content.builder()
+                Content bodyContentText = Content.builder()
                                 .data(content)
                                 .build();
 
+                Content bodyContentHtml = Content.builder()
+                                .data(htmlContent)
+                                .build();
+
                 Body body = Body.builder()
-                                .text(bodyContent)
+                                .html(bodyContentHtml)
+                                .text(bodyContentText)
                                 .build();
 
                 Message message = Message.builder()
