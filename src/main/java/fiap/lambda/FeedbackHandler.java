@@ -12,9 +12,20 @@ import fiap.resources.EmailResource;
 
 public class FeedbackHandler implements RequestHandler<SQSEvent, Void> {
 
-    private final EmailResource emailResource = new EmailResource();
+    private final EmailResource emailResource;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
+
+    public FeedbackHandler() {
+        this(new EmailResource(), new ObjectMapper());
+    }
+
+    public FeedbackHandler(
+            final EmailResource emailResource,
+            final ObjectMapper objectMapper) {
+        this.emailResource = emailResource;
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public Void handleRequest(SQSEvent event, Context context) {
@@ -37,6 +48,7 @@ public class FeedbackHandler implements RequestHandler<SQSEvent, Void> {
                         messageBodyHtml);
             } catch (Exception e) {
                 context.getLogger().log("Error parsing message: " + e.getMessage());
+                throw new RuntimeException(e);
             }
         }
         return null;
